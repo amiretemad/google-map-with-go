@@ -1,6 +1,5 @@
 # Google map APIs as microservice
-
-Useful google map APIs as a microservice
+Useful google map APIs as a microservice (Distance calculator and ...)
 
 ## Getting Started
 

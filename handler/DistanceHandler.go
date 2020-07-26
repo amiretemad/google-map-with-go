@@ -21,7 +21,7 @@ func (d *DistanceHandler) ServeHTTP(writer http.ResponseWriter, request *http.Re
 
 	writer.Header().Set("Content-Type", "application/json")
 
-	if request.Method == http.MethodPost {
+	if request.Method == http.MethodGet {
 		d.getDistance(writer, request)
 		return
 	}

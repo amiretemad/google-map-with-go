@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"github.com/bradfitz/gomemcache/memcache"
 	"googlemaps.github.io/maps"
 	"log"
 	"main/structs"
@@ -11,10 +12,11 @@ import (
 )
 
 type DistanceHandler struct {
+	memcachedClient *memcache.Client
 }
 
-func NewDistanceHandler() *DistanceHandler {
-	return &DistanceHandler{}
+func NewDistanceHandler(memcachedClient *memcache.Client) *DistanceHandler {
+	return &DistanceHandler{memcachedClient}
 }
 
 func (d *DistanceHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
@@ -47,6 +49,13 @@ func (d *DistanceHandler) getDistance(writer http.ResponseWriter, request *http.
 		return
 	}
 
+	item, err := d.memcachedClient.Get(ds.Origin.String() + ds.Destination.String())
+	if err == nil {
+		writer.WriteHeader(http.StatusOK)
+		_, _ = writer.Write(item.Value)
+		return
+	}
+
 	c, err := maps.NewClient(maps.WithAPIKey(os.Getenv("GOOGLE_API_KEY")))
 	if err != nil {
 		log.Fatalf("fatal error: %s", err)
@@ -75,4 +84,15 @@ func (d *DistanceHandler) getDistance(writer http.ResponseWriter, request *http.
 
 	mainResponseJson, _ := json.Marshal(finalResponse)
 	_, _ = writer.Write(mainResponseJson)
+
+	// Store Success Response in memcached
+	if finalResponse.Success {
+		_ = d.memcachedClient.Set(&memcache.Item{
+			Key:        ds.Origin.String() + ds.Destination.String(),
+			Value:      mainResponseJson,
+			Flags:      0,
+			Expiration: 3600,
+		})
+	}
+
 }

@@ -3,11 +3,20 @@ version: '3'
 services:
 
   api:
+    container_name: google-map-api_web
     build:
       context: .
       dockerfile: Dockerfile
     ports:
       - "8085:8083"
+    networks:
+      - apiNetwork
+
+  memcached:
+    container_name: google-map-api_memcached
+    image: memcached:latest
+    ports:
+      - "11211:11211"
     networks:
       - apiNetwork
 

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/joho/godotenv"
 	"log"
 	"main/handler"
@@ -16,7 +17,8 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	distanceHandler := handler.NewDistanceHandler()
+	memcachedClient := memcache.New(os.Getenv("MEMCACHED_URL"))
+	distanceHandler := handler.NewDistanceHandler(memcachedClient)
 
 	sm := http.NewServeMux()
 	sm.Handle("/distance", distanceHandler)

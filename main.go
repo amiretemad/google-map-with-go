@@ -17,19 +17,22 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	memcachedClient := memcache.New(os.Getenv("MEMCACHED_URL"))
+	memcachedClient := memcache.New(os.Getenv("MEMCACHED_URL") + ":" + os.Getenv("MEMCACHED_PORT"))
 	distanceHandler := handler.NewDistanceHandler(memcachedClient)
 
 	sm := http.NewServeMux()
 	sm.Handle("/distance", distanceHandler)
 
 	server := http.Server{
-		Addr:         os.Getenv("API_PORT"),
+		Addr:         os.Getenv("API_URL") + os.Getenv("API_PORT"),
 		Handler:      sm,
 		IdleTimeout:  120 * time.Second,
 		ReadTimeout:  1 * time.Second,
 		WriteTimeout: 1 * time.Second,
 	}
 
-	_ = server.ListenAndServe()
+	err = server.ListenAndServe()
+	if err != nil {
+		log.Fatal(err)
+	}
 }

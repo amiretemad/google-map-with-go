@@ -9,6 +9,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - ${API_PORT}:8083
+    depends_on:
+      - mongodb_log
     networks:
       - apiNetwork
 
@@ -17,6 +19,15 @@ services:
     image: memcached:latest
     ports:
       - ${MEMCACHED_PORT}:11211
+    networks:
+      - apiNetwork
+
+  mongodb_log:
+    container_name: google-map-api_mongodb_log
+    image: mongo:latest
+    command: mongod --port ${MONGODB_LOGGER_PORT}
+    ports:
+      - ${MONGODB_LOGGER_PORT}:27017
     networks:
       - apiNetwork
 
